@@ -1,56 +1,37 @@
-import { getTodos, saveTodos } from "../models/todoModels.js";
-import {nanoid} from "nanoid";
+import { todoModel } from "../models/todo.Models.js";
 
-export const listTodos = async( req, res) => {
-    const todos = await getTodos();
-    res.json(todos)
-}
-
+export const listTodos = async (req, res) => {
+  try {
+    const todos = await todoModel.findAll();
+    res.json(todos);
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener los todos" });
+  }
+};
 
 export const getTodo = async (req, res) => {
-    const { id } = req.params;
-    const todos = await getTodos();
-    const todo = todos.find(t=> t.id === id);
-    if(!todo) return res.status(404).json({ message: "Todo not found" })
-    res.json(todo);
-}
+  const { id } = req.params;
+  const todo = await todoModel.findById(id);
+  if (!todo) return res.status(404).json({ message: "Todo no encontrado" });
+  res.json(todo);
+};
 
+export const createTodo = async (req, res) => {
+  const { title } = req.body;
+  const newTodo = await todoModel.create(title);
+  res.status(201).json(newTodo);
+};
 
+export const toggleTodo = async (req, res) => {
+  const { id } = req.params;
+  const updated = await todoModel.toggle(id);
+  if (!updated) return res.status(404).json({ message: "Todo no encontrado" });
+  res.json(updated);
+};
 
-export const createTodo = async(req, res)=> {
-    const { title } = req.body;
-    const newTodo = { id: nanoid(), title, done: false };
-    const todos = await getTodos();
-    todos.push(newTodo);
-    await saveTodos(todos);
-    res.status(201).json(newTodo);
-}
-
-export const toggleTodo = async(req,res)=> {
-    const { id } = req.params;
-    const todos = await getTodos();
-    const index = todos.findIndex((t)=> t.id === id);
-    if (index === -1) return res.status(404).json({message: "Todo not found"});
-    todos[index].done = !todos[index].done;
-    await saveTodos(todos);
-    res.json(todos[index])
-}
-
-export const deleteTodo = async(req,res)=> {
-    const { id} = req.params;
-    const todos = await getTodos();
-    const todosFiltrados = todos.filter((t)=> t.id !== id);
-
-    if (todos.length === todosFiltrados.length) return res.status(404).json({message: "Todo not found"});
-    await saveTodos(todosFiltrados);
-    res.json(todosFiltrados);
-}
-
-
-export default {
-  listTodos,
-  getTodo,
-  createTodo,
-  toggleTodo,
-  deleteTodo
+export const deleteTodo = async (req, res) => {
+  const { id } = req.params;
+  const deleted = await todoModel.remove(id);
+  if (!deleted) return res.status(404).json({ message: "Todo no encontrado" });
+  res.json(deleted);
 };

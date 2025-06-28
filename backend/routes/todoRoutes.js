@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
   listTodos,
   getTodo,
@@ -16,5 +15,5 @@ router.post("/", createTodo);
 router.put("/:id", toggleTodo);
 router.delete("/:id", deleteTodo);
 
-
 export default router;
+
